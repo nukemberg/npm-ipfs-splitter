@@ -32,10 +32,11 @@ class NPMProxyHandler(RequestHandler):
     async def proxy(self):
         client = AsyncHTTPClient()
         try:
+            app_log.info('Proxying {} {}'.format(self.request.method, self.request.path))
             resp = await client.fetch(urljoin(NPM_REGISTRY_URL, self.request.path),
                                       method=self.request.method,
                                       body=self.request.body if self.request.method in ['PUT', 'POST'] else None,
-                                      headers=self.request.headers,
+                                      headers={name: value for name, value in self.request.headers.get_all() if name.lower() not in ['host', 'connection', 'user-agent']},
                                       follow_redirects=False, raise_error=True)
         except HTTPClientError as err:
             self.set_status(err.code)
@@ -99,9 +100,9 @@ class NPMTarballHandler(RequestHandler):
 lookup = dict()
 
 app = Application([
-    (r'/(\w+)', NPMPackageManifestHandler),
-    (r'/(\w+)/-/([\w.-]+.tgz)', NPMTarballHandler, {'lookup': lookup}),
-    (r'/.*', NPMProxyHandler)
+    (r'/([\w.@_-]+)', NPMPackageManifestHandler),
+    (r'/([\w.@_-]+)/-/([\w.@_-]+\.tgz)', NPMTarballHandler, {'lookup': lookup}),
+    (r'.*', NPMProxyHandler)
 ])
 
 if __name__ == '__main__':
