@@ -6,6 +6,7 @@ import poster
 from tornado.log import app_log, enable_pretty_logging
 import sys
 import ujson
+from io import BytesIO
 
 
 NPM_REGISTRY_URL = 'https://registry.npmjs.org/'
@@ -16,7 +17,7 @@ IPFS_GW_URL = 'http://127.0.0.1:8080/ipfs/'
 
 def rewrite_version(version_manifest):
     tarball_url = urlparse(version_manifest['dist']['tarball'])
-    version_manifest['tarball'] = urlunparse(
+    version_manifest['dist']['tarball'] = urlunparse(
         (tarball_url.scheme, SERVER_NETLOC, tarball_url.path, None, None, None))
     return version_manifest
 
@@ -91,10 +92,10 @@ class NPMTarballHandler(RequestHandler):
     async def ipfs_add(self, tarball, tarball_name):
         client = AsyncHTTPClient()
         message, headers = poster.encode.multipart_encode(
-            {tarball_name: tarball})
+            {tarball_name: BytesIO(tarball)})
         payload = b''.join(chunk.encode()
                            for chunk in message if type(chunk) == str)
-        resp = await client.fetch(urljoin(IPFS_API_URL, 'add' + '?' + urlencode({'path': tarball})), body=payload, headers=headers, method='POST')
+        resp = await client.fetch(urljoin(IPFS_API_URL, 'add' + '?' + urlencode({'path': tarball_name})), body=payload, headers=headers, method='POST')
         return ujson.loads(resp.body)['Hash']
 
 
