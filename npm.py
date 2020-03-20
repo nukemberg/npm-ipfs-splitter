@@ -69,7 +69,8 @@ class NPMPackageManifestHandler(RequestHandler):
             self.finish()
             return
         # TODO: stream instead of bufferring
-        self.finish(rewrite_urls(resp.body))
+        body = rewrite_urls(resp.body)
+        self.finish(body)
 
 
 class NPMTarballHandler(RequestHandler):
@@ -100,8 +101,8 @@ class NPMTarballHandler(RequestHandler):
 lookup = dict()
 
 app = Application([
-    (r'/([\w.@_-]+)', NPMPackageManifestHandler),
-    (r'/([\w.@_-]+)/-/([\w.@_-]+\.tgz)', NPMTarballHandler, {'lookup': lookup}),
+    (r'/([\w.@_%-]+)', NPMPackageManifestHandler),
+    (r'/([\w.@_%-]+)/-/([\w.@_%-]+\.tgz)', NPMTarballHandler, {'lookup': lookup}),
     (r'.*', NPMProxyHandler)
 ])
 
