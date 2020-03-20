@@ -16,13 +16,15 @@ IPFS_GW_URL = 'http://127.0.0.1:8080/ipfs/'
 
 def rewrite_version(version_manifest):
     tarball_url = urlparse(version_manifest['dist']['tarball'])
-    version_manifest['tarball'] = urlunparse((tarball_url.scheme, SERVER_NETLOC, tarball_url.path, None, None, None))
+    version_manifest['tarball'] = urlunparse(
+        (tarball_url.scheme, SERVER_NETLOC, tarball_url.path, None, None, None))
     return version_manifest
 
 
 def rewrite_urls(package_manifest_str):
     package_manifest = ujson.loads(package_manifest_str)
-    package_manifest['versions'] = {version: rewrite_version(manifest) for version, manifest in package_manifest['versions'].items()}
+    package_manifest['versions'] = {version: rewrite_version(
+        manifest) for version, manifest in package_manifest['versions'].items()}
     return ujson.dumps(package_manifest)
 
 
@@ -31,8 +33,10 @@ class NPMProxyHandler(RequestHandler):
         client = AsyncHTTPClient()
         try:
             resp = await client.fetch(urljoin(NPM_REGISTRY_URL, self.request.path),
-                method=self.request.method, body=self.request.body, headers=self.request.headers, 
-                follow_redirects=False, raise_error=True)
+                                      method=self.request.method,
+                                      body=self.request.body if self.request.method in ['PUT', 'POST'] else None,
+                                      headers=self.request.headers,
+                                      follow_redirects=False, raise_error=True)
         except HTTPClientError as err:
             self.set_status(err.code)
             self.finish(err.response.body)
@@ -65,7 +69,7 @@ class NPMPackageManifestHandler(RequestHandler):
             return
         # TODO: stream instead of bufferring
         self.finish(rewrite_urls(resp.body))
-        
+
 
 class NPMTarballHandler(RequestHandler):
     def initialize(self, lookup):
@@ -84,11 +88,13 @@ class NPMTarballHandler(RequestHandler):
 
     async def ipfs_add(self, tarball, tarball_name):
         client = AsyncHTTPClient()
-        message, headers = poster.encode.multipart_encode({tarball_name: tarball})
-        payload = b''.join(chunk.encode() for chunk in message if type(chunk) == str)
-        resp = await client.fetch(urljoin(IPFS_API_URL, 'add' + '?' +  urlencode({'path': tarball})), body=payload, headers=headers, method='POST')
+        message, headers = poster.encode.multipart_encode(
+            {tarball_name: tarball})
+        payload = b''.join(chunk.encode()
+                           for chunk in message if type(chunk) == str)
+        resp = await client.fetch(urljoin(IPFS_API_URL, 'add' + '?' + urlencode({'path': tarball})), body=payload, headers=headers, method='POST')
         return ujson.loads(resp.body)['Hash']
-    
+
 
 lookup = dict()
 
