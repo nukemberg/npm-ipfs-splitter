@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "db1ab2742983cd53c7b5954e01255ef7e966c456ff6fcad58eb176a0896255fe"
+            "sha256": "2fa658d40c9f7d8cb23d76d5bd78e1b4a955972abd83cfd5c77b5bab433910b1"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -19,13 +19,6 @@
         "poster": {
             "git": "https://github.com/dmorrison42/python-poster",
             "ref": "75bde107cbb9c0336b411f1a9affce236500e2b0"
-        },
-        "poster3": {
-            "hashes": [
-                "sha256:1b27d7d63e3191e5d7238631fc828e4493590e94dcea034e386c079d853cce14"
-            ],
-            "index": "pypi",
-            "version": "==0.8.1"
         },
         "tornado": {
             "hashes": [

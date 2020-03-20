@@ -2,7 +2,8 @@ from tornado.httpclient import AsyncHTTPClient, HTTPClientError, HTTPError
 from tornado.web import RequestHandler, Application
 from tornado.ioloop import IOLoop
 from urllib.parse import urljoin, urlparse, urlunparse, urlencode
-import poster
+from urllib3 import encode_multipart_formdata
+from urllib3.fields import RequestField
 from tornado.log import app_log, enable_pretty_logging
 import sys
 import ujson
@@ -91,11 +92,10 @@ class NPMTarballHandler(RequestHandler):
 
     async def ipfs_add(self, tarball, tarball_name):
         client = AsyncHTTPClient()
-        message, headers = poster.encode.multipart_encode(
-            {tarball_name: BytesIO(tarball)})
-        payload = b''.join(chunk.encode()
-                           for chunk in message if type(chunk) == str)
-        resp = await client.fetch(urljoin(IPFS_API_URL, 'add' + '?' + urlencode({'path': tarball_name})), body=payload, headers=headers, method='POST')
+        file_field = RequestField(filename=tarball_name, name=tarball_name, data=tarball)
+        body, content_type = encode_multipart_formdata([file_field])
+        resp = await client.fetch(urljoin(IPFS_API_URL, 'add' + '?' + urlencode({'path': tarball_name})), body=body,
+                headers={'Content-Type': content_type}, method='POST')
         return ujson.loads(resp.body)['Hash']
 
 
