@@ -13,7 +13,7 @@ from io import BytesIO
 
 NPM_REGISTRY_URL = 'https://registry.npmjs.org/'
 SERVER_BASE_URL = os.environ.get('SERVER_BASE_URL', 'http://localhost:8081/')
-SERVER_PORT = urlparse(SERVER_BASE_URL).netloc.split(':')[1]
+SERVER_PORT = os.environ.get('SERVER_PORT', 8081)
 IPFS_API_URL = 'http://127.0.0.1:5001/api/v0/'
 IPFS_GW_URL = 'http://127.0.0.1:8080/ipfs/'
 
