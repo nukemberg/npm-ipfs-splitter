@@ -6,20 +6,21 @@ from urllib3 import encode_multipart_formdata
 from urllib3.fields import RequestField
 from tornado.log import app_log, enable_pretty_logging
 import sys
+import os
 import ujson
 from io import BytesIO
 
 
 NPM_REGISTRY_URL = 'https://registry.npmjs.org/'
-SERVER_NETLOC = 'localhost:8081'
+SERVER_BASE_URL = os.environ.get('SERVER_BASE_URL', 'http://localhost:8081/')
+SERVER_PORT = urlparse(SERVER_BASE_URL).netloc.split(':')[1]
 IPFS_API_URL = 'http://127.0.0.1:5001/api/v0/'
 IPFS_GW_URL = 'http://127.0.0.1:8080/ipfs/'
 
 
 def rewrite_version(version_manifest):
     tarball_url = urlparse(version_manifest['dist']['tarball'])
-    version_manifest['dist']['tarball'] = urlunparse(
-        (tarball_url.scheme, SERVER_NETLOC, tarball_url.path, None, None, None))
+    version_manifest['dist']['tarball'] = urljoin(SERVER_BASE_URL, tarball_url.path)
     return version_manifest
 
 
@@ -109,5 +110,5 @@ app = Application([
 
 if __name__ == '__main__':
     enable_pretty_logging()
-    app.listen((8081))
+    app.listen((SERVER_PORT))
     IOLoop.current().start()
